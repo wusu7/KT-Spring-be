@@ -1,4 +1,11 @@
 package com.techup.spring.spring_be.repository;
 
-public class ChattingRoomRepository {
+import com.techup.spring.spring_be.domain.ChattingRoom;
+import com.techup.spring.spring_be.domain.Community;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ChattingRoomRepository extends JpaRepository<ChattingRoom, Long> {
+
+    List<ChattingRoom> findByCommunity(Community community);
 }

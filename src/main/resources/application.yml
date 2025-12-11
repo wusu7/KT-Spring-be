@@ -18,6 +18,3 @@ spring:
 
   application:
     name: spring-be
-
-  session:
-    store-type: none
