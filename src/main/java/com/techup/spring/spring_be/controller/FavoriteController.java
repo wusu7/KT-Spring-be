@@ -1,6 +1,7 @@
 package com.techup.spring.spring_be.controller;
 
 import com.techup.spring.spring_be.domain.User;
+import com.techup.spring.spring_be.dto.common.ApiResponse;
 import com.techup.spring.spring_be.repository.UserRepository;
 import com.techup.spring.spring_be.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
@@ -23,26 +24,25 @@ public class FavoriteController {
     }
 
     @PostMapping("/{postId}/favorite")
-    public FavoriteService.FavoriteToggleResponse toggleFavorite(
+    public ApiResponse<FavoriteService.FavoriteToggleResponse> toggleFavorite(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         Long userId = getCurrentUserId(userDetails);
-        return favoriteService.toggleFavorite(userId, postId);
+        var res = favoriteService.toggleFavorite(userId, postId);
+        return ApiResponse.ok("좋아요 토글 성공", res);
     }
 
     @GetMapping("/{postId}/favorite")
-    public FavoriteService.FavoriteStatusResponse getFavoriteStatus(
+    public ApiResponse<FavoriteService.FavoriteStatusResponse> getFavoriteStatus(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         Long userId = null;
-
-        // 토큰 없이도 조회 허용하려면 null 처리
         if (userDetails != null) {
             userId = getCurrentUserId(userDetails);
         }
-
-        return favoriteService.getFavoriteStatus(postId, userId);
+        var res = favoriteService.getFavoriteStatus(postId, userId);
+        return ApiResponse.ok("좋아요 상태 조회 성공", res);
     }
 }
