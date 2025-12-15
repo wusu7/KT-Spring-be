@@ -1,16 +1,19 @@
 package com.techup.spring.spring_be.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor
 @Entity
 @Table(
         name = "favorite",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_favorite_user_post",
-                        columnNames = {"user_id", "post_id"}
-                )
-        }
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_favorite_user_post",
+                columnNames = {"user_id", "post_id"}
+        )
 )
 public class Favorite extends BaseEntity{
 
@@ -28,24 +31,9 @@ public class Favorite extends BaseEntity{
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    protected Favorite() {
-    }
 
     public Favorite(User user, Post post) {
         this.user = user;
         this.post = post;
-    }
-
-    // Getter
-    public Long getId() {
-        return id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Post getPost() {
-        return post;
     }
 }
