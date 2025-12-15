@@ -4,6 +4,7 @@ import com.techup.spring.spring_be.domain.User;
 import com.techup.spring.spring_be.dto.comment.CommentCreateRequest;
 import com.techup.spring.spring_be.dto.comment.CommentResponse;
 import com.techup.spring.spring_be.dto.comment.CommentUpdateRequest;
+import com.techup.spring.spring_be.dto.common.ApiResponse;
 import com.techup.spring.spring_be.repository.UserRepository;
 import com.techup.spring.spring_be.service.CommentService;
 import jakarta.validation.Valid;
@@ -30,45 +31,49 @@ public class CommentController {
 
     /** 댓글 생성 */
     @PostMapping
-    public CommentResponse create(
+    public ApiResponse<CommentResponse> create(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CommentCreateRequest request
     ) {
         Long userId = getCurrentUserId(userDetails);
-        return commentService.createComment(userId, postId, request);
+        CommentResponse res = commentService.createComment(userId, postId, request);
+        return ApiResponse.ok("댓글 생성 성공", res);
     }
 
     /** 댓글 목록(페이징) */
     @GetMapping
-    public Page<CommentResponse> list(
+    public ApiResponse<Page<CommentResponse>> list(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return commentService.getCommentsByPost(postId, page, size);
+        Page<CommentResponse> res = commentService.getCommentsByPost(postId, page, size);
+        return ApiResponse.ok("댓글 목록 조회 성공", res);
     }
 
     /** 댓글 수정 */
     @PutMapping("/{commentId}")
-    public CommentResponse update(
-            @PathVariable Long postId, // 경로 통일용(서비스에선 commentId로 검증 가능)
+    public ApiResponse<CommentResponse> update(
+            @PathVariable Long postId,
             @PathVariable Long commentId,
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CommentUpdateRequest request
     ) {
         Long userId = getCurrentUserId(userDetails);
-        return commentService.updateComment(commentId, userId, request);
+        CommentResponse res = commentService.updateComment(commentId, userId, request);
+        return ApiResponse.ok("댓글 수정 성공", res);
     }
 
     /** 댓글 삭제 */
     @DeleteMapping("/{commentId}")
-    public void delete(
+    public ApiResponse<Void> delete(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         Long userId = getCurrentUserId(userDetails);
         commentService.deleteComment(commentId, userId);
+        return ApiResponse.ok("댓글 삭제 성공");
     }
 }
