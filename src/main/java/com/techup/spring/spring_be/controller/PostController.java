@@ -9,11 +9,10 @@ import com.techup.spring.spring_be.repository.UserRepository;
 import com.techup.spring.spring_be.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -23,14 +22,13 @@ public class PostController {
     private final PostService postService;
     private final UserRepository userRepository;
 
-    // 로그인 회원의 userId 가져오는 헬퍼
     private Long getCurrentUserId(UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalStateException("회원 정보를 찾을 수 없습니다."));
         return user.getId();
     }
 
-    /** 게시글 생성 */
+    /** 게시글 생성 (로그인 필요) */
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -41,25 +39,33 @@ public class PostController {
         return ApiResponse.ok("게시글 생성 성공", res);
     }
 
-    /** 단건 조회 */
+    /** 단건 조회 (비로그인 가능: favorited=false 처리) */
     @GetMapping("/{postId}")
-    public ApiResponse<PostResponse> getPost(@PathVariable Long postId) {
-        PostResponse res = postService.getPost(postId);
+    public ApiResponse<PostResponse> getPost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long userIdOrNull = (userDetails == null) ? null : getCurrentUserId(userDetails);
+        PostResponse res = postService.getPost(postId, userIdOrNull);
         return ApiResponse.ok("게시글 조회 성공", res);
     }
 
-    /** 커뮤니티별 목록 */
+    /** 커뮤니티별 목록 조회(페이징) (비로그인 가능) */
     @GetMapping("/community/{communityId}")
     public ApiResponse<Page<PostResponse>> getPostsByCommunity(
             @PathVariable Long communityId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Page<PostResponse> res = postService.getPostsByCommunity(communityId, page, size);
+        Long userIdOrNull = (userDetails == null) ? null : getCurrentUserId(userDetails);
+
+        // ✅ 여기서 4번째 인자 userIdOrNull을 넘겨야 에러가 사라짐
+        Page<PostResponse> res = postService.getPostsByCommunity(communityId, page, size, userIdOrNull);
         return ApiResponse.ok("게시글 목록 조회 성공", res);
     }
 
-    /** 수정 */
+    /** 수정 (로그인 필요) */
     @PutMapping("/{postId}")
     public ApiResponse<PostResponse> updatePost(
             @PathVariable Long postId,
@@ -71,6 +77,7 @@ public class PostController {
         return ApiResponse.ok("게시글 수정 성공", res);
     }
 
+    /** 삭제 (로그인 필요) */
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
             @PathVariable Long postId,
