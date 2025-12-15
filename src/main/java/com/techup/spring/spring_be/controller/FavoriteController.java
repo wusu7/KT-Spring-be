@@ -30,4 +30,19 @@ public class FavoriteController {
         Long userId = getCurrentUserId(userDetails);
         return favoriteService.toggleFavorite(userId, postId);
     }
+
+    @GetMapping("/{postId}/favorite")
+    public FavoriteService.FavoriteStatusResponse getFavoriteStatus(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long userId = null;
+
+        // 토큰 없이도 조회 허용하려면 null 처리
+        if (userDetails != null) {
+            userId = getCurrentUserId(userDetails);
+        }
+
+        return favoriteService.getFavoriteStatus(postId, userId);
+    }
 }
